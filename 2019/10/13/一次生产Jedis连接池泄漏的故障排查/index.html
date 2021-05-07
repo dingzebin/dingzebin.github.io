@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang>
+  <head><meta name="generator" content="Hexo 3.9.0">
+    
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1,minimum-scale=1,maximum-scale=1">
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+  <meta name="description" content="一次生产Jedis连接池泄漏的故障排查">
+
+
+
+
+  <meta name="keywords" content="Redis,">
+
+
+
+
+
+  <link rel="alternate" href="/default" title="子清">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=1.1">
+
+
+
+<link rel="canonical" href="http://dingzebin.github.io/2019/10/13/一次生产Jedis连接池泄漏的故障排查/">
+
+
+<meta name="description" content="概述最近公司系统新上线，运行几天后生产的某个服务突然间出现了一堆Redis的连接池泄漏的错误日志，并且该服务再也无法使用调用redis，日志错误如下 环境说明项目采用的是Springboot，访问redis使用的是Spring Data Redis + Jedis 故障排查从上面的错误日志可以看出这个错误是从连接池从拿不到连接，然后等待获取连接超时导致的。一开始，我们怀疑是不是访问量一多，连接池不">
+<meta name="keywords" content="Redis">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一次生产Jedis连接池泄漏的故障排查">
+<meta property="og:url" content="http://dingzebin.github.io/2019/10/13/一次生产Jedis连接池泄漏的故障排查/index.html">
+<meta property="og:site_name" content="子清">
+<meta property="og:description" content="概述最近公司系统新上线，运行几天后生产的某个服务突然间出现了一堆Redis的连接池泄漏的错误日志，并且该服务再也无法使用调用redis，日志错误如下 环境说明项目采用的是Springboot，访问redis使用的是Spring Data Redis + Jedis 故障排查从上面的错误日志可以看出这个错误是从连接池从拿不到连接，然后等待获取连接超时导致的。一开始，我们怀疑是不是访问量一多，连接池不">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://dingzebin.github.io/images/redis/jedis-error-log.png">
+<meta property="og:image" content="http://dingzebin.github.io/images/redis/jedis-error-code.png">
+<meta property="og:updated_time" content="2021-05-07T04:47:10.881Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="一次生产Jedis连接池泄漏的故障排查">
+<meta name="twitter:description" content="概述最近公司系统新上线，运行几天后生产的某个服务突然间出现了一堆Redis的连接池泄漏的错误日志，并且该服务再也无法使用调用redis，日志错误如下 环境说明项目采用的是Springboot，访问redis使用的是Spring Data Redis + Jedis 故障排查从上面的错误日志可以看出这个错误是从连接池从拿不到连接，然后等待获取连接超时导致的。一开始，我们怀疑是不是访问量一多，连接池不">
+<meta name="twitter:image" content="http://dingzebin.github.io/images/redis/jedis-error-log.png">
+
+
+<link rel="stylesheet" type="text/css" href="/css/style.css?v=1.1">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+
+
+
+
+<script type="text/javascript">
+  var themeConfig = {
+    fancybox: {
+      enable: false
+    },
+  };
+</script>
+
+
+
+
+  
+
+
+
+    <title> 一次生产Jedis连接池泄漏的故障排查 - 子清 </title>
+  </head>
+
+  <body>
+    <div id="page">
+      <header id="masthead"><div class="site-header-inner">
+    <h1 class="site-title">
+        <a href="/." class="logo">子清</a>
+    </h1>
+
+    <nav id="nav-top">
+        
+            <ul id="menu-top" class="nav-top-items">
+                
+                    <li class="menu-item">
+                        <a href="/archives">
+                            
+                            
+                                Archives
+                            
+                        </a>
+                    </li>
+                
+                    <li class="menu-item">
+                        <a href="/about">
+                            
+                            
+                                About
+                            
+                        </a>
+                    </li>
+                
+            </ul>
+        
+  </nav>
+</div>
+
+      </header>
+      <div id="content">
+        
+    <div id="primary">
+        
+  <article class="post">
+    <header class="post-header">
+      <h1 class="post-title">
+        
+          一次生产Jedis连接池泄漏的故障排查
+        
+      </h1>
+
+      <time class="post-time">
+          Oct 13 2019
+      </time>
+    </header>
+
+
+
+    
+            <div class="post-content">
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>最近公司系统新上线，运行几天后生产的某个服务突然间出现了一堆Redis的连接池泄漏的错误日志，并且该服务再也无法使用调用redis，日志错误如下<br><img src="/images/redis/jedis-error-log.png" alt></p>
+<h2 id="环境说明"><a href="#环境说明" class="headerlink" title="环境说明"></a>环境说明</h2><p>项目采用的是Springboot，访问redis使用的是Spring Data Redis + Jedis</p>
+<h2 id="故障排查"><a href="#故障排查" class="headerlink" title="故障排查"></a>故障排查</h2><p>从上面的错误日志可以看出这个错误是从连接池从拿不到连接，然后等待获取连接超时导致的。一开始，我们怀疑是不是访问量一多，连接池不够用导致的，但是在日志中我们发现出来一次报错后后面每次访问Redis都会报错，如果是连接池不够用，那应该是出现部分报错而不是全部，所以我们猜测是不是拿了连接后没有归还，导致连接池泄漏了。我们找到第一次出现错误的接口，接口访问 Redis 的代码如下<br><img src="/images/redis/jedis-error-code.png" alt><br>这是一个获取 Redis 中数据数量的接口，该接口直接从 RedisTemplate 中获取连接池，然后再获取连接，使用后没有调用 close 方法，所以每次拿出来后都不会把连接归还，这个接口用的比较少，但是还是慢慢的把连接池给耗光了，所以在最后一次调用后就一直出现报错。</p>
+<h2 id="解决方式"><a href="#解决方式" class="headerlink" title="解决方式"></a>解决方式</h2><ul>
+<li><ol>
+<li>使用结束后调用连接池的 close 方法归还连接</li>
+</ol>
+</li>
+<li><ol start="2">
+<li>使用 RedisTemplate 访问，如下<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">redisTemplate.execute(conn -&gt; &#123;</span><br><span class="line">        <span class="keyword">return</span> conn.dbSize();</span><br><span class="line">&#125;, <span class="keyword">true</span>);</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+</li>
+</ul>
+<p>下面 execute 的实现</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Nullable</span></span><br><span class="line"><span class="keyword">public</span> &lt;T&gt; <span class="function">T <span class="title">execute</span><span class="params">(RedisCallback&lt;T&gt; action, <span class="keyword">boolean</span> exposeConnection, <span class="keyword">boolean</span> pipeline)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      ... 省略</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="comment">// 释放连接</span></span><br><span class="line">        RedisConnectionUtils.releaseConnection(conn, factory, <span class="keyword">this</span>.enableTransactionSupport);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> var11;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看下 releaseConnection 的实现</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">releaseConnection</span><span class="params">(@Nullable RedisConnection conn, RedisConnectionFactory factory, <span class="keyword">boolean</span> transactionSupport)</span> </span>&#123;</span><br><span class="line">     <span class="keyword">if</span> (conn != <span class="keyword">null</span>) &#123;</span><br><span class="line">         RedisConnectionUtils.RedisConnectionHolder connHolder = (RedisConnectionUtils.RedisConnectionHolder)TransactionSynchronizationManager.getResource(factory);</span><br><span class="line">         <span class="keyword">if</span> (connHolder != <span class="keyword">null</span> &amp;&amp; connHolder.isTransactionSyncronisationActive()) &#123;</span><br><span class="line">             <span class="keyword">if</span> (log.isDebugEnabled()) &#123;</span><br><span class="line">                 log.debug(<span class="string">"Redis Connection will be closed when transaction finished."</span>);</span><br><span class="line">             &#125;</span><br><span class="line"></span><br><span class="line">         &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">             <span class="comment">// 使用事务的情况下</span></span><br><span class="line">             <span class="keyword">if</span> (isConnectionTransactional(conn, factory)) &#123;</span><br><span class="line">                 <span class="keyword">if</span> (transactionSupport &amp;&amp; TransactionSynchronizationManager.isCurrentTransactionReadOnly()) &#123;</span><br><span class="line">                     <span class="keyword">if</span> (log.isDebugEnabled()) &#123;</span><br><span class="line">                         log.debug(<span class="string">"Unbinding Redis Connection."</span>);</span><br><span class="line">                     &#125;</span><br><span class="line"></span><br><span class="line">                     unbindConnection(factory);</span><br><span class="line">                 &#125; <span class="keyword">else</span> <span class="keyword">if</span> (log.isDebugEnabled()) &#123;</span><br><span class="line">                     log.debug(<span class="string">"Leaving bound Redis Connection attached."</span>);</span><br><span class="line">                 &#125;</span><br><span class="line">             &#125; <span class="keyword">else</span> &#123; <span class="comment">// 没使用事务的情况</span></span><br><span class="line">                 <span class="keyword">if</span> (log.isDebugEnabled()) &#123;</span><br><span class="line">                     log.debug(<span class="string">"Closing Redis Connection."</span>);</span><br><span class="line">                 &#125;</span><br><span class="line">                 <span class="comment">// 关闭连接</span></span><br><span class="line">                 conn.close();</span><br><span class="line">             &#125;</span><br><span class="line"></span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>Spring Data Redis 中默认是不开启事务的，如果开启事务的话那 Spring Data Redis 是不会自动释放连接，具体可以看这篇<a href="https://blog.csdn.net/LiuHanFanShuang/article/details/52136438" target="_blank" rel="noopener">Sping Data Redis 使用事务时，不关闭连接的问题</a></p>
+
+            </div>
+          
+
+    
+      <footer class="post-footer">
+		
+		<div class="post-tags">
+		  
+			<a href="/tags/Redis/">Redis</a>
+		  
+		</div>
+		
+
+        
+        
+  <nav class="post-nav">
+    
+      <a class="prev" href="/2019/11/24/Springboot-Dubbo2-7-x-Apollo/">
+        <i class="iconfont icon-left"></i>
+        <span class="prev-text nav-default">Springboot + Dubbo2.7.x + Apollo</span>
+        <span class="prev-text nav-mobile">Prev</span>
+      </a>
+    
+    
+      <a class="next" href="/2019/08/17/Google学术助手的安装/">
+        <span class="next-text nav-default">Google学术助手的安装</span>
+        <span class="prev-text nav-mobile">Next</span>
+        <i class="iconfont icon-right"></i>
+      </a>
+    
+  </nav>
+
+        
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+      </footer>
+    
+  </article>
+
+    </div>
+
+      </div>
+
+      <footer id="colophon"><span class="copyright-year">
+    
+        &copy;
+    
+        2014 -
+    
+    2021
+    <span class="footer-author">子清.</span>
+    <span class="power-by">
+        Powered by <a class="hexo-link" href="https://hexo.io/">Hexo</a> and <a class="theme-link" href="https://github.com/frostfan/hexo-theme-polarbear">Polar Bear</a>
+    </span>
+</span>
+
+      </footer>
+
+      <div class="back-to-top" id="back-to-top">
+        <i class="iconfont icon-up"></i>
+      </div>
+    </div>
+    
+
+
+    
+
+
+
+
+  
+    <script type="text/javascript" src="/lib/jquery/jquery-3.1.1.min.js"></script>
+  
+
+  
+
+    <script type="text/javascript" src="/js/src/theme.js?v=1.1"></script>
+<script type="text/javascript" src="/js/src/bootstrap.js?v=1.1"></script>
+
+  </body>
+</html>

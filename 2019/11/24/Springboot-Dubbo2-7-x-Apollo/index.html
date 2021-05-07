@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang>
+  <head><meta name="generator" content="Hexo 3.9.0">
+    
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1,minimum-scale=1,maximum-scale=1">
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+  <meta name="description" content="Springboot + Dubbo2.7.x + Apollo">
+
+
+
+
+  <meta name="keywords" content="配置中心,">
+
+
+
+
+
+  <link rel="alternate" href="/default" title="子清">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=1.1">
+
+
+
+<link rel="canonical" href="http://dingzebin.github.io/2019/11/24/Springboot-Dubbo2-7-x-Apollo/">
+
+
+<meta name="description" content="环境准备 Java 1.8 Apollo配置中心安装，Github上有详细的安装过程 Zookeeper注册中心，官网下载和安装  开始搭建1. 创建配置1.1 创建项目前面安装好Apollo后，从浏览器进入配置中心管理页面(默认端口8070)如上图创建3个Project，分别为demo-common（公共配置）、demo-provider（提供者配置）、demo-consumer（消费者配置）">
+<meta name="keywords" content="配置中心">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Springboot + Dubbo2.7.x + Apollo">
+<meta property="og:url" content="http://dingzebin.github.io/2019/11/24/Springboot-Dubbo2-7-x-Apollo/index.html">
+<meta property="og:site_name" content="子清">
+<meta property="og:description" content="环境准备 Java 1.8 Apollo配置中心安装，Github上有详细的安装过程 Zookeeper注册中心，官网下载和安装  开始搭建1. 创建配置1.1 创建项目前面安装好Apollo后，从浏览器进入配置中心管理页面(默认端口8070)如上图创建3个Project，分别为demo-common（公共配置）、demo-provider（提供者配置）、demo-consumer（消费者配置）">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://dingzebin.github.io/images/ConfigCenter/20191124151846.png">
+<meta property="og:image" content="http://dingzebin.github.io/images/ConfigCenter/20191124152637.png">
+<meta property="og:image" content="http://dingzebin.github.io/images/ConfigCenter/20191124152954.png">
+<meta property="og:image" content="http://dingzebin.github.io/images/ConfigCenter/20191124154143.png">
+<meta property="og:image" content="http://dingzebin.github.io/images/ConfigCenter/20191124162922.png">
+<meta property="og:updated_time" content="2021-05-07T04:47:10.881Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Springboot + Dubbo2.7.x + Apollo">
+<meta name="twitter:description" content="环境准备 Java 1.8 Apollo配置中心安装，Github上有详细的安装过程 Zookeeper注册中心，官网下载和安装  开始搭建1. 创建配置1.1 创建项目前面安装好Apollo后，从浏览器进入配置中心管理页面(默认端口8070)如上图创建3个Project，分别为demo-common（公共配置）、demo-provider（提供者配置）、demo-consumer（消费者配置）">
+<meta name="twitter:image" content="http://dingzebin.github.io/images/ConfigCenter/20191124151846.png">
+
+
+<link rel="stylesheet" type="text/css" href="/css/style.css?v=1.1">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+
+
+
+
+<script type="text/javascript">
+  var themeConfig = {
+    fancybox: {
+      enable: false
+    },
+  };
+</script>
+
+
+
+
+  
+
+
+
+    <title> Springboot + Dubbo2.7.x + Apollo - 子清 </title>
+  </head>
+
+  <body>
+    <div id="page">
+      <header id="masthead"><div class="site-header-inner">
+    <h1 class="site-title">
+        <a href="/." class="logo">子清</a>
+    </h1>
+
+    <nav id="nav-top">
+        
+            <ul id="menu-top" class="nav-top-items">
+                
+                    <li class="menu-item">
+                        <a href="/archives">
+                            
+                            
+                                Archives
+                            
+                        </a>
+                    </li>
+                
+                    <li class="menu-item">
+                        <a href="/about">
+                            
+                            
+                                About
+                            
+                        </a>
+                    </li>
+                
+            </ul>
+        
+  </nav>
+</div>
+
+      </header>
+      <div id="content">
+        
+    <div id="primary">
+        
+  <article class="post">
+    <header class="post-header">
+      <h1 class="post-title">
+        
+          Springboot + Dubbo2.7.x + Apollo
+        
+      </h1>
+
+      <time class="post-time">
+          Nov 24 2019
+      </time>
+    </header>
+
+
+
+    
+            <div class="post-content">
+            <h1 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h1><ol>
+<li>Java 1.8</li>
+<li>Apollo配置中心安装，<a href="https://github.com/ctripcorp/apollo/wiki/Quick-Start" target="_blank" rel="noopener">Github上有详细的安装过程</a></li>
+<li>Zookeeper注册中心，<a href="https://zookeeper.apache.org/releases.html" target="_blank" rel="noopener">官网下载和安装</a></li>
+</ol>
+<h1 id="开始搭建"><a href="#开始搭建" class="headerlink" title="开始搭建"></a>开始搭建</h1><h2 id="1-创建配置"><a href="#1-创建配置" class="headerlink" title="1. 创建配置"></a>1. 创建配置</h2><h3 id="1-1-创建项目"><a href="#1-1-创建项目" class="headerlink" title="1.1 创建项目"></a>1.1 创建项目</h3><p>前面安装好Apollo后，从浏览器进入配置中心管理页面(默认端口8070)<br><img src="/images/ConfigCenter/20191124151846.png" alt><br>如上图创建3个Project，分别为demo-common（公共配置）、demo-provider（提供者配置）、demo-consumer（消费者配置）</p>
+<h3 id="1-2-创建公共Namespace"><a href="#1-2-创建公共Namespace" class="headerlink" title="1.2 创建公共Namespace"></a>1.2 创建公共Namespace</h3><p>先进入demo-common项目，点击左下角的添加 Add Namespace 按钮<br><img src="/images/ConfigCenter/20191124152637.png" alt><br>进入添加Namespace页面后点击 Create Namespace 按钮<br><img src="/images/ConfigCenter/20191124152954.png" alt><br>创建一个dubbo的Namespace，然后回到demo-common的项目配置中，此时项目多了一个dubbo的公共配置。然后在dubbo的Namespace下面添加如下配置</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dubbo.protocol.name = dubbo</span><br><span class="line">dubbo.registry.address = zookeeper:<span class="comment">//zookeeper-ip:2181</span></span><br><span class="line">dubbo.registry.simplified = <span class="keyword">true</span></span><br></pre></td></tr></table></figure>
+
+<p>然后点击 dubbo 上的 Realease 按钮</p>
+<h3 id="1-3-添加私有配置"><a href="#1-3-添加私有配置" class="headerlink" title="1.3 添加私有配置"></a>1.3 添加私有配置</h3><h4 id="1-3-1-添加服务端的配置"><a href="#1-3-1-添加服务端的配置" class="headerlink" title="1.3.1 添加服务端的配置"></a>1.3.1 添加服务端的配置</h4><ul>
+<li>添加上面创建的dubbo的Namespace，进入 demo-provider项目，点击 Add Namespace按钮，然后在下拉选项中选择 dubbo，然后 Submit<br><img src="/images/ConfigCenter/20191124154143.png" alt></li>
+<li>回到 demo-provider 项目中，在 application 的 Namespace中添加以下配置，然后 Release<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dubbo.application.name = demo-provider</span><br><span class="line">dubbo.protocol.port = <span class="number">20880</span></span><br><span class="line">dubbo.scan.base-packages = com.dzeb.demo.service # dubbo的Service注解的类的包</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h4 id="1-3-2-添加消费端的配置"><a href="#1-3-2-添加消费端的配置" class="headerlink" title="1.3.2 添加消费端的配置"></a>1.3.2 添加消费端的配置</h4><ul>
+<li>跟上面 demo-provider 一样，进入 demo-consumer, 先添加公共的 dubbo 的 Namespace</li>
+<li>在 application 的 Namespace 中添加以下配置，然后 Release<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dubbo.application.name = demo-consumer</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h2 id="2-创建Java工程"><a href="#2-创建Java工程" class="headerlink" title="2. 创建Java工程"></a>2. 创建Java工程</h2><h3 id="2-1-创建Java工程"><a href="#2-1-创建Java工程" class="headerlink" title="2.1 创建Java工程"></a>2.1 创建Java工程</h3><p>创建 demo-provider、demo-consumer、demo-api 三个maven工程</p>
+<h3 id="2-2-添加Maven依赖"><a href="#2-2-添加Maven依赖" class="headerlink" title="2.2 添加Maven依赖"></a>2.2 添加Maven依赖</h3><p>demo-provider的pom.xml：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependencies&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;spring-boot-starter&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;2.2.1.RELEASE&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;!-- apollo 依赖 --&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;com.ctrip.framework.apollo&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;apollo-client&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;1.5.0&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;!-- zookeeper 需要用的依赖 --&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.apache.curator&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;curator-recipes&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;4.2.0&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.apache.curator&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;curator-framework&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;4.2.0&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.apache.zookeeper&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;zookeeper&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;3.5.5&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;!-- dubbo 和 springboot 集成依赖 --&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.apache.dubbo&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;dubbo-spring-boot-starter&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;2.7.4.1&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;!-- demo-api依赖 --&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;com.dzeb&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;demo-api&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">&lt;/dependencies&gt;</span><br></pre></td></tr></table></figure>
+
+<p>demo-consumer 的 pom.xml：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependencies&gt;</span><br><span class="line">    &lt;!-- springboot web启动 --&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;2.2.1.RELEASE&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;!-- Apollo --&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;com.ctrip.framework.apollo&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;apollo-client&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;1.5.0&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;!-- dubbo --&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.apache.dubbo&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;dubbo-spring-boot-starter&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;2.7.4.1&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;!-- zookeeper 需要用到的依赖--&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.apache.curator&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;curator-recipes&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;4.2.0&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.apache.curator&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;curator-framework&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;4.2.0&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.apache.zookeeper&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;zookeeper&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;3.5.5&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;!-- demo-api --&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;com.dzeb&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;demo-api&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">&lt;/dependencies&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-配置使用-Apollo"><a href="#2-3-配置使用-Apollo" class="headerlink" title="2.3 配置使用 Apollo"></a>2.3 配置使用 Apollo</h3><p>demo-provider 的 resources/application.properties：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">app.id = demo-provider # Apollo配置中心中的 demo-provider 的 appId</span><br><span class="line">apollo.meta=http:<span class="comment">//apollo-ip:8080 # 配置中心的meta-server，默认8080端口</span></span><br><span class="line">apollo.bootstrap.enabled = true # 注入默认application namespace的配置示例</span><br><span class="line">apollo.bootstrap.namespaces = application,dubbo # 要使用的 Namespace</span><br></pre></td></tr></table></figure>
+
+<p>demo-consumer 的 resources/application.properties：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">app.id = demo-consumer</span><br><span class="line">apollo.meta=http:<span class="comment">//apollo-ip:8080</span></span><br><span class="line">apollo.bootstrap.enabled = <span class="keyword">true</span></span><br><span class="line">apollo.bootstrap.namespaces = application,dubbo</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-4-创建测试类"><a href="#2-4-创建测试类" class="headerlink" title="2.4 创建测试类"></a>2.4 创建测试类</h3><p>demo-api 工程创建类 DemoService:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">DemoService</span> </span>&#123;</span><br><span class="line">    <span class="function">String <span class="title">sayHello</span><span class="params">(String name)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>demo-provider 工程创建类 DefaultDemoService 和 DemoProviderApplication：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.dubbo.config.annotation.Service;</span><br><span class="line"><span class="keyword">import</span> org.springframework.beans.factory.annotation.Value;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 这里的 Service 是 org.apache.dubbo.config.annotation 包下面的，不是 Spring 的 Service 注解</span></span><br><span class="line"><span class="meta">@Service</span>(version = <span class="string">"1.0.0"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DefaultDemoService</span> <span class="keyword">implements</span> <span class="title">DemoService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * application name</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;dubbo.application.name&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> String serviceName;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">sayHello</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">"[%s] : Hello, %s"</span>, serviceName, name);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DemoProviderApplication</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SpringApplication.run(DemoProviderApplication<span class="class">.<span class="keyword">class</span>, <span class="title">args</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>demo-consumer 工程创建类 DemoController 和 DemoApiApplication：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DemoController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Reference</span>(version = <span class="string">"1.0.0"</span>)</span><br><span class="line">    <span class="keyword">private</span> DemoService demoService;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@RequestMapping</span>(<span class="string">"sayHello/&#123;name&#125;"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> ResponseEntity&lt;String&gt; <span class="title">sayHello</span><span class="params">(@PathVariable(<span class="string">"name"</span>)</span> String name) </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> ResponseEntity.ok().body(demoService.sayHello(name));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DemoApiApplication</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SpringApplication.run(DemoApiApplication<span class="class">.<span class="keyword">class</span>, <span class="title">args</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-5-启动访问"><a href="#2-5-启动访问" class="headerlink" title="2.5 启动访问"></a>2.5 启动访问</h3><p>分别启动 DemoProviderApplication 和 DemoApiApplication，然后在浏览器或HTTP测试工具上访问，如下<br><img src="/images/ConfigCenter/20191124162922.png" alt></p>
+<h1 id="填坑"><a href="#填坑" class="headerlink" title="填坑"></a>填坑</h1><p>如果启动遇到如下报错：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java.lang.IllegalStateException: zookeeper not connected</span><br></pre></td></tr></table></figure>
+
+<p>有一种情况是超时导致的，可以在zookeeper配置的连接增加timeout（default 5000），然后 Release</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">zookeeper:<span class="comment">//zookeeper-ip:2181?timeout=10000</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>这次搭建使用了最新的dubbo 2.7.x，其中有许多改动，比如默认配置中心和移除 zkclient 的实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">为了兼容<span class="number">2.6</span>.x版本配置，在使用Zookeeper作为注册中心，且没有显示配置配置中心的情况下，Dubbo框架会默认将此Zookeeper用作配置中心，但将只作服务治理用途。</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">注意:在<span class="number">2.7</span>.x的版本中已经移除了zkclient的实现,如果要使用zkclient客户端,需要自行拓展</span><br></pre></td></tr></table></figure>
+
+<h1 id="源码地址"><a href="#源码地址" class="headerlink" title="源码地址"></a>源码地址</h1><p><a href="https://github.com/dingzebin/dubbo-apollo-demo" target="_blank" rel="noopener">https://github.com/dingzebin/dubbo-apollo-demo</a></p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://dubbo.apache.org/zh-cn/docs" target="_blank" rel="noopener">Dubbo官方文档</a></p>
+<p><a href="https://github.com/ctripcorp/apollo" target="_blank" rel="noopener">Apollo官方文档</a></p>
+
+            </div>
+          
+
+    
+      <footer class="post-footer">
+		
+		<div class="post-tags">
+		  
+			<a href="/tags/配置中心/">配置中心</a>
+		  
+		</div>
+		
+
+        
+        
+  <nav class="post-nav">
+    
+    
+      <a class="next" href="/2019/10/13/一次生产Jedis连接池泄漏的故障排查/">
+        <span class="next-text nav-default">一次生产Jedis连接池泄漏的故障排查</span>
+        <span class="prev-text nav-mobile">Next</span>
+        <i class="iconfont icon-right"></i>
+      </a>
+    
+  </nav>
+
+        
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+      </footer>
+    
+  </article>
+
+    </div>
+
+      </div>
+
+      <footer id="colophon"><span class="copyright-year">
+    
+        &copy;
+    
+        2014 -
+    
+    2021
+    <span class="footer-author">子清.</span>
+    <span class="power-by">
+        Powered by <a class="hexo-link" href="https://hexo.io/">Hexo</a> and <a class="theme-link" href="https://github.com/frostfan/hexo-theme-polarbear">Polar Bear</a>
+    </span>
+</span>
+
+      </footer>
+
+      <div class="back-to-top" id="back-to-top">
+        <i class="iconfont icon-up"></i>
+      </div>
+    </div>
+    
+
+
+    
+
+
+
+
+  
+    <script type="text/javascript" src="/lib/jquery/jquery-3.1.1.min.js"></script>
+  
+
+  
+
+    <script type="text/javascript" src="/js/src/theme.js?v=1.1"></script>
+<script type="text/javascript" src="/js/src/bootstrap.js?v=1.1"></script>
+
+  </body>
+</html>
